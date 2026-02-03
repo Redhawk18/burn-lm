@@ -1,9 +1,14 @@
 use burn::{
     config::Config,
     module::Module,
-    nn::{Embedding, EmbeddingConfig, Linear, LinearConfig, RmsNorm, RmsNormConfig},
+    nn::{
+        loss::CrossEntropyLossConfig, Embedding, EmbeddingConfig, Linear, LinearConfig, RmsNorm,
+        RmsNormConfig,
+    },
     tensor::{backend::Backend, Bool, Device, Int, Tensor},
+    train::ClassificationOutput,
 };
+use std::fmt::Debug;
 
 use crate::{
     generation::GenerationError,
@@ -100,7 +105,7 @@ impl<B: Backend> Transformer<B> {
         self.output.forward(h)
     }
 
-    /// Forward with non-autoregressive and a required mask for training.
+    /// Forward with non-autoregressive and creates a mask for training.
     pub fn forward_train(
         &self,
         input: Tensor<B, 2, Int>,

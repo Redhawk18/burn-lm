@@ -26,6 +26,8 @@ tiny = ["dep:tokenizers"]
 
 # To import pytorch weights
 import = ["burn-import"]
+# TODO add train feature flag
+
 
 # Feature flags for testing
 test-non-default = []
@@ -50,7 +52,7 @@ burn = { workspace = true, features = [
     "std",
     "ndarray",
     "network",
-    "dataset",
+    "dataset", "train"
 ], default-features = false }
 burn-import = { workspace = true, default-features = false, features = [
     "pytorch",

@@ -3,13 +3,14 @@ use std::time::Instant;
 use burn::{
     config::Config,
     module::{Module, Quantizer},
-    nn::RotaryEncodingConfig,
+    nn::{loss::CrossEntropyLossConfig, RotaryEncodingConfig},
     record::{FileRecorder, HalfPrecisionSettings, RecorderError},
     tensor::{
-        backend::Backend,
+        backend::{AutodiffBackend, Backend},
         quantization::{Calibration, QuantScheme},
         Device, Int, Shape, Tensor, TensorData,
     },
+    train::{InferenceStep, ItemLazy, TrainOutput, TrainStep},
 };
 
 use crate::{
@@ -381,5 +382,73 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
         self.model.output = self.model.output.quantize_weights(&mut quantizer);
 
         self
+    }
+
+    pub fn forward_train(&mut self, item: LlamaInput<B>) -> LlamaOutput<B> {
+        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
+        let [batch_size, seq_len, vocab_size] = logits.dims();
+        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
+        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
+        let loss = CrossEntropyLossConfig::new()
+            .init(&logits.device())
+            .forward(logits_flattened, targets_flattened);
+
+        LlamaOutput { loss, logits }
+    }
+}
+
+pub struct LlamaInput<B: Backend> {
+    pub tokens: Tensor<B, 2, Int>,  // [batch_size, seq_len]
+    pub targets: Tensor<B, 2, Int>, // [batch_size, seq_len]
+}
+
+pub struct LlamaOutput<B: Backend> {
+    pub loss: Tensor<B, 1>,
+    pub logits: Tensor<B, 3>, // [batch_size, seq_len, vocab_size]
+}
+
+impl<B: Backend> ItemLazy for LlamaOutput<B> {
+    type ItemSync = Self;
+
+    fn sync(self) -> Self::ItemSync {
+        self
+    }
+}
+
+impl<B: Backend, T: Tokenizer> InferenceStep for Llama<B, T> {
+    type Input = LlamaInput<B>;
+    type Output = LlamaOutput<B>;
+
+    fn step(&self, item: LlamaInput<B>) -> LlamaOutput<B> {
+        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
+        let [batch_size, seq_len, vocab_size] = logits.dims();
+        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
+        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
+        let loss = CrossEntropyLossConfig::new()
+            .init(&logits.device())
+            .forward(logits_flattened, targets_flattened);
+
+        LlamaOutput { loss, logits }
+    }
+}
+
+impl<B: AutodiffBackend, T: Tokenizer> TrainStep for Llama<B, T> {
+    type Input = LlamaInput<B>;
+    type Output = LlamaOutput<B>;
+
+    fn step(&self, item: LlamaInput<B>) -> TrainOutput<LlamaOutput<B>> {
+        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
+
+        let [batch_size, seq_len, vocab_size] = logits.dims();
+        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
+        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
+
+        let loss = CrossEntropyLossConfig::new()
+            .init(&logits.device())
+            .forward(logits_flattened, targets_flattened);
+        let grads = loss.backward();
+
+        let output = LlamaOutput { loss, logits };
+        TrainOutput::new(&self.model, grads, output)
     }
 }
