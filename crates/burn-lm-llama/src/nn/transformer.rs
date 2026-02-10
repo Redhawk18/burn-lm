@@ -3,7 +3,7 @@ use burn::{
     module::Module,
     nn::{
         loss::CrossEntropyLossConfig, Embedding, EmbeddingConfig, Linear, LinearConfig, RmsNorm,
-        RmsNormConfig,
+        RmsNormConfig, RotaryEncoding,
     },
     tensor::{backend::Backend, Bool, Device, Int, Tensor},
     train::ClassificationOutput,
@@ -109,12 +109,12 @@ impl<B: Backend> Transformer<B> {
     pub fn forward_train(
         &self,
         input: Tensor<B, 2, Int>,
-        pos_encoding: &PositionalEncodingState<B>,
+        rope: &RotaryEncoding<B>,
     ) -> Tensor<B, 3> {
         let mut h = self.tok_embeddings.forward(input);
 
         for layer in self.layers.iter() {
-            h = layer.forward_train(h, pos_encoding);
+            h = layer.forward_train(h, rope);
         }
 
         let h = self.norm.forward(h);
@@ -266,15 +266,11 @@ impl<B: Backend> TransformerBlock<B> {
     }
 
     /// Forward with non-autoregressive and a required mask for training.
-    pub fn forward_train(
-        &self,
-        input: Tensor<B, 3>,
-        pos_encoding: &PositionalEncodingState<B>,
-    ) -> Tensor<B, 3> {
+    pub fn forward_train(&self, input: Tensor<B, 3>, rope: &RotaryEncoding<B>) -> Tensor<B, 3> {
         let h = input.clone()
             + self
                 .attention
-                .forward_masked(self.attention_norm.forward(input), &pos_encoding.rope);
+                .forward_masked(self.attention_norm.forward(input), &rope);
         h.clone() + self.feed_forward.forward(self.ffn_norm.forward(h))
     }
 }

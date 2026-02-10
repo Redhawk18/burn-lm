@@ -383,83 +383,71 @@ impl<B: Backend, T: Tokenizer> Llama<B, T> {
 
         self
     }
-
-    pub fn forward_train(&mut self, item: LlamaInput<B>) -> LlamaOutput<B> {
-        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
-        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
-        let loss = CrossEntropyLossConfig::new()
-            .init(&logits.device())
-            .forward(logits_flattened, targets_flattened);
-
-        LlamaOutput { loss, logits }
-    }
 }
 
-impl<B: Backend, T: Tokenizer> Display for Llama<B, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", "llama 3/tiny")
-    }
-}
+// impl<B: Backend, T: Tokenizer> Display for Llama<B, T> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", "llama 3/tiny")
+//     }
+// }
 
-impl<B: Backend, T: Tokenizer> InferenceStep for Llama<B, T> {
-    type Input = LlamaInput<B>;
-    type Output = LlamaOutput<B>;
+// impl<B: Backend, T: Tokenizer> InferenceStep for Llama<B, T> {
+//     type Input = LlamaInput<B>;
+//     type Output = LlamaOutput<B>;
 
-    fn step(&self, item: LlamaInput<B>) -> LlamaOutput<B> {
-        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
-        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
-        let loss = CrossEntropyLossConfig::new()
-            .init(&logits.device())
-            .forward(logits_flattened, targets_flattened);
+//     fn step(&self, item: LlamaInput<B>) -> LlamaOutput<B> {
+//         let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
+//         let [batch_size, seq_len, vocab_size] = logits.dims();
+//         let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
+//         let targets_flattened = item.targets.reshape([batch_size * seq_len]);
+//         let loss = CrossEntropyLossConfig::new()
+//             .init(&logits.device())
+//             .forward(logits_flattened, targets_flattened);
 
-        LlamaOutput { loss, logits }
-    }
-}
+//         LlamaOutput { loss, logits }
+//     }
+// }
 
-impl<B: AutodiffBackend, T: Tokenizer> TrainStep for Llama<B, T> {
-    type Input = LlamaInput<B>;
-    type Output = LlamaOutput<B>;
+// impl<B: AutodiffBackend, T: Tokenizer> TrainStep for Llama<B, T> {
+//     type Input = LlamaInput<B>;
+//     type Output = LlamaOutput<B>;
 
-    fn step(&self, item: LlamaInput<B>) -> TrainOutput<LlamaOutput<B>> {
-        let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
+//     fn step(&self, item: LlamaInput<B>) -> TrainOutput<LlamaOutput<B>> {
+//         let logits = self.model.forward_train(item.tokens, &self.pos_encoding);
 
-        let [batch_size, seq_len, vocab_size] = logits.dims();
-        let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
-        let targets_flattened = item.targets.reshape([batch_size * seq_len]);
+//         let [batch_size, seq_len, vocab_size] = logits.dims();
+//         let logits_flattened = logits.clone().reshape([batch_size * seq_len, vocab_size]);
+//         let targets_flattened = item.targets.reshape([batch_size * seq_len]);
 
-        let loss = CrossEntropyLossConfig::new()
-            .init(&logits.device())
-            .forward(logits_flattened, targets_flattened);
-        let grads = loss.backward();
+//         let loss = CrossEntropyLossConfig::new()
+//             .init(&logits.device())
+//             .forward(logits_flattened, targets_flattened);
+//         let grads = loss.backward();
 
-        let output = LlamaOutput { loss, logits };
-        TrainOutput::new(&self.model, grads, output)
-    }
-}
+//         let output = LlamaOutput { loss, logits };
+//         TrainOutput::new(&self.model, grads, output)
+//     }
+// }
 
-#[derive(Debug, Clone)]
-pub struct LlamaInput<B: Backend> {
-    /// [batch_size, seq_len]
-    pub tokens: Tensor<B, 2, Int>,
-    /// [batch_size, seq_len]
-    pub targets: Tensor<B, 2, Int>,
-}
+// #[derive(Debug, Clone)]
+// pub struct LlamaInput<B: Backend> {
+//     /// [batch_size, seq_len]
+//     pub tokens: Tensor<B, 2, Int>,
+//     /// [batch_size, seq_len]
+//     pub targets: Tensor<B, 2, Int>,
+// }
 
-#[derive(Debug, Clone)]
-pub struct LlamaOutput<B: Backend> {
-    pub loss: Tensor<B, 1>,
-    /// [batch_size, seq_len, vocab_size]
-    pub logits: Tensor<B, 3>,
-}
+// #[derive(Debug, Clone)]
+// pub struct LlamaOutput<B: Backend> {
+//     pub loss: Tensor<B, 1>,
+//     /// [batch_size, seq_len, vocab_size]
+//     pub logits: Tensor<B, 3>,
+// }
 
-impl<B: Backend> ItemLazy for LlamaOutput<B> {
-    type ItemSync = Self;
+// impl<B: Backend> ItemLazy for LlamaOutput<B> {
+//     type ItemSync = Self;
 
-    fn sync(self) -> Self::ItemSync {
-        self
-    }
-}
+//     fn sync(self) -> Self::ItemSync {
+//         self
+//     }
+// }
