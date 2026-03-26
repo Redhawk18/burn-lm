@@ -18,8 +18,10 @@ burn = { version ="0.21.0-pre.2", git = "https://github.com/redhawk18/burn", fea
     "std",
 # ], default-features = false, rev = "f0987e7" }
 ], default-features = false, branch = "8bit" }
+# ], default-features = false }
 # burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "f0987e7" }
-burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "8bit" }
+# burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "8bit" }
+# burn-import = { path = "../burn/crates/burn-on", default-features = false, rev = "8bit" }
 
 # For dev we use the local version of burn
 # burn = { path = "../burn/crates/burn", features = [
@@ -31,7 +33,7 @@ burn-import = { git = "https://github.com/redhawk18/burn", default-features = fa
 # burn = { version = "=0.20.0", features = [
 #     "std",
 # ], default-features = false }
-# burn-import = { version = "=0.20.0", default-features = false }
+burn-import = { version = "=0.20.0", default-features = false }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
