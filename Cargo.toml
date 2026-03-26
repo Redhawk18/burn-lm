@@ -16,8 +16,8 @@ readme = "README.md"
 # For dev
 burn = { git = "https://github.com/redhawk18/burn", features = [
     "std",
-], default-features = false, rev = "29f563f" }
-burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "29f563f" }
+], default-features = false, rev = "f0987e7" }
+burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "f0987e7" }
 
 # For dev we use the local version of burn
 # burn = { path = "../burn/crates/burn", features = [
