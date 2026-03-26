@@ -16,8 +16,10 @@ readme = "README.md"
 # For dev
 burn = { version ="0.21.0-pre.2", git = "https://github.com/redhawk18/burn", features = [
     "std",
-], default-features = false, rev = "f0987e7" }
-burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "f0987e7" }
+# ], default-features = false, rev = "f0987e7" }
+], default-features = false, branch = "8bit" }
+# burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "f0987e7" }
+burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "8bit" }
 
 # For dev we use the local version of burn
 # burn = { path = "../burn/crates/burn", features = [

@@ -3,3 +3,7 @@ tmp
 mprocs.log
 burnlm.config
 .DS_Store
+
+
+.devenv
+.direnv
