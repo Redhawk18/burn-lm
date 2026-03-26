@@ -7,3 +7,5 @@ burnlm.config
 
 .devenv
 .direnv
+
+Cargo.lock

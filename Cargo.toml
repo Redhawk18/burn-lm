@@ -14,10 +14,12 @@ readme = "README.md"
 
 [workspace.dependencies]
 # For dev
-burn = { version ="0.21.0-pre.2", git = "https://github.com/redhawk18/burn", features = [
+burn = { version ="0.21.0-pre.2", path = "../burn/crates/burn", features = [
+# burn = { version ="0.21.0-pre.2", git = "https://github.com/redhawk18/burn", features = [
     "std",
 # ], default-features = false, rev = "f0987e7" }
-], default-features = false, branch = "8bit" }
+# ], default-features = false, branch = "8bit" }
+], default-features = false }
 # ], default-features = false }
 # burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, rev = "f0987e7" }
 # burn-import = { git = "https://github.com/redhawk18/burn", default-features = false, branch = "8bit" }
